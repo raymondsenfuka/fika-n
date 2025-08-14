@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Your Lorry Space</title>
+    <title>Fika Connect - Book Your Lorry Space</title>
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
+        /* General page layout and typography */
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f2f5;
@@ -53,7 +55,7 @@
         input[type="text"],
         input[type="tel"],
         input[type="number"],
-        input[type="date"],
+        input[type="datetime-local"],
         select {
             width: 100%;
             padding: 10px;
@@ -82,25 +84,6 @@
             font-size: 18px;
             cursor: pointer;
             border-radius: 4px;
-        }
-        .date-button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 5px;
-            background-color: #e0f2f1;
-            border: 1px solid #00796b;
-            border-radius: 4px;
-            text-align: left;
-            cursor: pointer;
-        }
-        .date-button.selected {
-            background-color: #00796b;
-            color: #fff;
-            border: 1px solid #004d40;
-        }
-        .date-button:not(.selected):hover {
-            background-color: #cfd8dc;
         }
         .summary {
             background-color: #e8f5e9;
@@ -132,6 +115,23 @@
             padding-top: 10px;
             border-top: 1px solid #eee;
         }
+        .payment-info {
+            background-color: #fff8e1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px dashed #ffb300;
+            text-align: center;
+        }
+        .payment-info h4 {
+            margin-top: 0;
+            color: #ff6f00;
+        }
+        .payment-info .phone-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #d32f2f;
+        }
         .actions {
             text-align: center;
             margin-top: 20px;
@@ -149,26 +149,141 @@
         .btn-submit:hover {
             background-color: #004d40;
         }
-        .coordinator-call-section {
+        .chat-section {
             text-align: center;
             margin-top: 30px;
         }
-        .btn-call-coordinator {
+        .btn-chat {
             display: inline-block;
-            background-color: #2196f3;
+            background-color: #25d366;
             color: #fff;
             padding: 10px 20px;
             border-radius: 4px;
             text-decoration: none;
             font-weight: bold;
         }
-        .btn-call-coordinator i {
+        .btn-chat i {
             margin-right: 8px;
         }
         .language-selector {
             margin-top: 20px;
             text-align: center;
         }
+        .hidden {
+            display: none;
+        }
+        #areaSelection, #groupDisplay, #loadingMessage, #userIdDisplay, #bookingForm {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        #groupList {
+            list-style: none;
+            padding: 0;
+        }
+        #groupList li {
+            background-color: #e0f2f1;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #00796b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-join, .btn-create {
+            background-color: #004d40;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        /* New styles for booking history */
+        #bookingHistory {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        #bookingHistoryList {
+            list-style: none;
+            padding: 0;
+        }
+        #bookingHistoryList li {
+            background-color: #f5f5f5;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+        .status-paid { color: green; font-weight: bold; }
+        .status-pending { color: orange; font-weight: bold; }
+        .status-failed { color: red; font-weight: bold; }
+
+        /* New styles for payment buttons */
+        .payment-option-btn {
+            background-color: #00796b;
+            color: #fff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .payment-option-btn.momo {
+            background-color: #f7b731; /* MTN yellow */
+        }
+        .payment-option-btn.airtel {
+            background-color: #e50914; /* Airtel red */
+        }
+        .payment-option-btn i {
+            margin-right: 8px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .modal-content button {
+            background-color: #00796b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .modal-content h3 {
+            color: #004d40;
+        }
+
+
+        /* Responsive design */
         @media (min-width: 601px) {
             body {
                 padding: 40px;
@@ -208,20 +323,53 @@
 <body>
     <div class="container">
         <header>
-            <h1>Collective Transportation</h1>
+            <h1>Book a Space on the Lorry</h1>
             <p>Share the journey, save money, and get your produce to the market.</p>
         </header>
 
-        <form id="bookingForm">
+        <div id="userIdDisplay">
+            <p><strong>Your User ID:</strong> <span id="userIdSpan">Loading...</span></p>
+        </div>
+
+        <div id="loadingMessage">
+            <p>Connecting to database and authenticating...</p>
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Step 1: Area Selection -->
+        <div id="areaSelection" class="hidden">
+            <h2>Select Your Area</h2>
+            <p>Please choose your village or current location.</p>
+            <div class="form-group">
+                <label for="area">Your Area</label>
+                <select id="area" name="area" required>
+                    <option value="">Select your area</option>
+                </select>
+            </div>
+            <button type="button" id="selectAreaBtn" class="btn-submit">Proceed</button>
+        </div>
+
+        <!-- Step 2: Group Display -->
+        <div id="groupDisplay" class="hidden">
+            <h2>Saved Groups in <span id="currentAreaName"></span></h2>
+            <p>Join an existing group or create a new one to save on transport costs.</p>
+            <ul id="groupList"></ul>
+            <button type="button" id="createNewGroupBtn" class="btn-submit btn-create">Create a New Group</button>
+        </div>
+
+        <!-- Booking History Display -->
+        <div id="bookingHistory" class="hidden">
+            <h3>Your Past Bookings</h3>
+            <ul id="bookingHistoryList"></ul>
+        </div>
+        
+        <!-- Step 3: Booking Form -->
+        <form id="bookingForm" class="hidden">
             <div class="section">
                 <h2>Your Details</h2>
                 <div class="form-group">
                     <label for="name">Your Name</label>
                     <input type="text" id="name" name="name" placeholder="Enter your full name" required>
-                </div>
-                <div class="form-group">
-                    <label for="village">Your Village</label>
-                    <input type="text" id="village" name="village" placeholder="e.g., Kituuka, Mpigi" required>
                 </div>
                 <div class="form-group">
                     <label for="phone">Phone Number</label>
@@ -268,10 +416,9 @@
                     </select>
                 </div>
                 
-                <div class="form-group" id="date-availability-group">
-                    <label>Preferred pickup date?</label>
-                    <div id="date-options">
-                        </div>
+                <div class="form-group">
+                    <label for="pickupDateTime">Preferred Pickup Date & Time</label>
+                    <input type="datetime-local" id="pickupDateTime" name="pickupDateTime" required>
                 </div>
             </div>
 
@@ -280,10 +427,11 @@
                 <p><strong>Name:</strong> <span id="summaryName"></span></p>
                 <p><strong>Produce:</strong> <span id="summaryProduce"></span></p>
                 <p><strong>Market:</strong> <span id="summaryMarket"></span></p>
-                <p><strong>Date:</strong> <span id="summaryDate"></span></p>
+                <p><strong>Pickup:</strong> <span id="summaryPickupDateTime"></span></p>
                 <p class="cost"><strong>Estimated Cost:</strong> <span id="summaryCost">UGX 0</span></p>
+                <div id="cost-breakdown"></div>
 
-                <div id="driver-details" style="display: none;">
+                <div id="driver-details" class="hidden">
                     <h4>Lorry & Driver Details</h4>
                     <p><strong>Driver:</strong> <span id="driverName"></span></p>
                     <p><strong>Lorry Reg:</strong> <span id="lorryReg"></span></p>
@@ -291,41 +439,65 @@
                 
                 <div class="payment-options">
                     <h4>Payment</h4>
-                    <p><strong>Payment Method:</strong> Cash on pickup</p>
-                    <p>Please have the exact amount ready when the lorry arrives.</p>
+                    <p>Please choose your payment method below:</p>
+                    <button type="button" id="payMomoBtn" class="payment-option-btn momo">
+                        <i class="fas fa-mobile-alt"></i> Pay with MTN MoMo
+                    </button>
+                    <button type="button" id="payAirtelBtn" class="payment-option-btn airtel">
+                        <i class="fas fa-mobile-alt"></i> Pay with Airtel Money
+                    </button>
+                    <div id="paymentInfo" class="payment-info hidden">
+                        <h4>Complete Your Payment</h4>
+                        <p>To pay, please dial your mobile money code and send the amount to:</p>
+                        <p class="phone-number">0706864020</p>
+                        <button type="button" id="confirmPaymentBtn" class="btn-submit">I have paid</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="actions">
-                <button type="submit" class="btn-submit">Book My Lorry Space</button>
+            <div class="chat-section">
+                <p>Got questions or need to chat with your group?</p>
+                <a href="https://wa.me/256771234567?text=Hello%20FikaConnect%2C%20I%20have%20a%20question%20about%20my%20booking." target="_blank" class="btn-chat">
+                    <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+                </a>
             </div>
             
+            <div class="language-selector">
+                <label for="lang">Select Language:</label>
+                <select id="lang">
+                    <option value="en">English</option>
+                    <option value="lg">Luganda</option>
+                    <option value="sw">Kiswahili</option>
+                    <option value="fr">French</option>
+                </select>
+            </div>
         </form>
 
-        <div class="coordinator-call-section">
-            <p>Need help? Talk to your Village Coordinator.</p>
-            <a href="tel:+256771234567" class="btn-call-coordinator">
-                <i class="fas fa-phone"></i> Call Coordinator
-            </a>
-        </div>
-        
-        <div class="language-selector">
-            <label for="lang">Select Language:</label>
-            <select id="lang">
-                <option value="en">English</option>
-                <option value="lg">Luganda</option>
-                <option value="sw">Kiswahili</option>
-                <option value="fr">French</option>
-            </select>
+    </div>
+
+    <!-- Modal for displaying messages -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title"></h3>
+            <p id="modal-message"></p>
+            <button id="modal-close-btn">Close</button>
         </div>
     </div>
     
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-    <script>
-        // Your Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDq3uO76nnqqPgPaFfXpOTEnFSXRqXneWU", 
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase
+        let db;
+        let auth;
+        let userId = 'anonymous';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const __initial_auth_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyDq3uO76nnqqPgPaFfXpOTEnFSXRqXneWU",
             authDomain: "fika-connect-5f844.firebaseapp.com",
             projectId: "fika-connect-5f844",
             storageBucket: "fika-connect-5f844.appspot.com",
@@ -334,199 +506,322 @@
         };
         
         // Initialize Firebase
-        const { initializeApp } = firebase;
-        const { getFirestore } = firebase.firestore;
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        db = getFirestore(app);
+        auth = getAuth(app);
 
-        // All other JavaScript logic goes here
+        // Function to show a custom modal message
+        function showModal(title, message) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            modal.style.display = 'flex';
+            document.getElementById('modal-close-btn').onclick = () => {
+                modal.style.display = 'none';
+            };
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('bookingForm');
+            const userIdSpan = document.getElementById('userIdSpan');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const areaSelection = document.getElementById('areaSelection');
+            const areaSelect = document.getElementById('area');
+            const selectAreaBtn = document.getElementById('selectAreaBtn');
+            const groupDisplay = document.getElementById('groupDisplay');
+            const currentAreaName = document.getElementById('currentAreaName');
+            const groupList = document.getElementById('groupList');
+            const createNewGroupBtn = document.getElementById('createNewGroupBtn');
+            const bookingHistorySection = document.getElementById('bookingHistory');
+            const bookingHistoryList = document.getElementById('bookingHistoryList');
+            const bookingForm = document.getElementById('bookingForm');
+            const nameInput = document.getElementById('name');
+            const phoneInput = document.getElementById('phone');
+            const produceInput = document.getElementById('produce');
             const quantityInput = document.getElementById('quantity');
+            const marketInput = document.getElementById('market');
+            const pickupDateTimeInput = document.getElementById('pickupDateTime');
             const summaryName = document.getElementById('summaryName');
             const summaryProduce = document.getElementById('summaryProduce');
             const summaryMarket = document.getElementById('summaryMarket');
-            const summaryDate = document.getElementById('summaryDate');
+            const summaryPickupDateTime = document.getElementById('summaryPickupDateTime');
             const summaryCost = document.getElementById('summaryCost');
+            const costBreakdown = document.getElementById('cost-breakdown');
             const driverDetailsSection = document.getElementById('driver-details');
             const driverName = document.getElementById('driverName');
             const lorryReg = document.getElementById('lorryReg');
-            const dateOptionsContainer = document.getElementById('date-options');
             const langSelector = document.getElementById('lang');
+            
+            const payMomoBtn = document.getElementById('payMomoBtn');
+            const payAirtelBtn = document.getElementById('payAirtelBtn');
+            const paymentInfo = document.getElementById('paymentInfo');
+            const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
+
+            let currentSelectedArea = '';
+            let currentGroupSize = 1;
+            let currentGroupRef = null;
+
+            // Wait for authentication state to be ready
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    userIdSpan.textContent = userId;
+                    loadingMessage.classList.add('hidden');
+                    areaSelection.classList.remove('hidden');
+                    // Start listening to data once authenticated
+                    setupFirestoreListeners();
+                    fetchAndRenderAreas();
+                } else {
+                    // Sign in anonymously if no user is found
+                    await signInAnonymously(auth);
+                }
+            });
+
+            // Mock data for the app
+            const produceRates = {
+                'Matoke': 3000, 'Cassava': 2500, 'Maize': 2000, 'Sweet Potatoes': 3500, 'Tomatoes': 4000, 'Onions': 4500, 'Cabbages': 2800
+            };
+            let liveGroups = {};
+            let liveBookings = [];
 
             const translations = {
                 en: {
-                    header: "Book a Space on the Lorry",
-                    subHeader: "Share the journey, save money, and get your produce to the market.",
-                    yourDetails: "Your Details",
-                    nameLabel: "Your Name",
-                    villageLabel: "Your Village",
-                    phoneLabel: "Phone Number",
-                    produceDetails: "Your Produce Details",
-                    produceLabel: "What are you sending?",
-                    quantityLabel: "How many bags or bundles?",
-                    journeyDetails: "Journey Details",
-                    marketLabel: "Which market?",
-                    dateLabel: "Preferred pickup date?",
-                    summaryTitle: "Your Booking Summary",
-                    estimatedCost: "Estimated Cost:",
-                    paymentTitle: "Payment",
-                    paymentMethod: "Cash on pickup",
-                    paymentNote: "Please have the exact amount ready when the lorry arrives.",
-                    submitBtn: "Book My Lorry Space",
-                    helpText: "Need help? Talk to your Village Coordinator.",
-                    callBtn: "Call Coordinator",
-                    dateMsgAvailable: "A lorry is scheduled. Join the group!",
-                    dateMsgFull: "This lorry is full. Please choose another day."
+                    header: "Book a Space on the Lorry", subHeader: "Share the journey, save money, and get your produce to the market.", selectArea: "Select Your Area", selectAreaSub: "Please choose your village or current location.", areaLabel: "Your Area", proceedBtn: "Proceed", groupsTitle: "Saved Groups in", groupsSub: "Join an existing group or create a new one to save on transport costs.", newGroupBtn: "Create a New Group", joinGroupBtn: "Join Group", yourDetails: "Your Details", nameLabel: "Your Name", phoneLabel: "Phone Number", produceDetails: "Your Produce Details", produceLabel: "What are you sending?", quantityLabel: "How many bags or bundles?", journeyDetails: "Journey Details", marketLabel: "Which market?", pickupLabel: "Preferred Pickup Date & Time", summaryTitle: "Your Booking Summary", pickupTime: "Pickup:", estimatedCost: "Estimated Cost:", paymentTitle: "Payment", paymentNote: "Please choose your payment method below:", submitBtn: "Book My Lorry Space", chatText: "Got questions or need to chat with your group?", chatBtn: "Chat on WhatsApp", costBase: "Base Rate per bag:", costDiscount: "Group Discount:", costFinal: "Final Cost:", groupName: "Group", members: "members", paidStatus: "Paid", pendingStatus: "Pending Payment", failedStatus: "Failed", rebookBtn: "Re-book", payMoMoBtn: "Pay with MTN MoMo", payAirtelBtn: "Pay with Airtel Money", paymentModalTitle: "Pay with Mobile Money", paymentModalMsg: "To pay, please dial your mobile money code and send the amount to:", mobileMoneyNumber: "Mobile Money Number:", confirmPayment: "I have paid", paymentSuccess: "Payment successful! Your booking is confirmed.", paymentFailure: "Payment failed. Please try again.", bookingHistoryTitle: "Your Past Bookings", noGroups: "No active groups found. Be the first to create one!", userIdLabel: "Your User ID:", connecting: "Connecting to database and authenticating...", noBookings: "You have no past bookings.", paymentInfoTitle: "Complete Your Payment", modalTitleSuccess: "Success!", modalTitleError: "Error!", modalMessagePaymentSuccess: "Your booking is confirmed and payment is noted.", modalMessagePaymentError: "There was an error processing your payment. Please try again or contact support."
                 },
                 lg: {
-                    header: "Kuwandiisa Ekifo ku Loli",
-                    subHeader: "Mugabane olugendo, mutereze ssente, era mutuse eby'okulima byammwe mu katale.",
-                    yourDetails: "Ebikukwatako",
-                    nameLabel: "Erinnya lyo",
-                    villageLabel: "Ekitundu kyo",
-                    phoneLabel: "Namba y'essimu",
-                    produceDetails: "Eby'okulima byo",
-                    produceLabel: "Otumira ki?",
-                    quantityLabel: "Ebiwuufu oba ebinywa bimeka?",
-                    journeyDetails: "Eby'olugendo",
-                    marketLabel: "Katale ki?",
-                    dateLabel: "Olunaku lw'oyagala okutwaliramu?",
-                    summaryTitle: "Eby'okukwandiisa byo",
-                    estimatedCost: "Ekigeregeranyo ky'omutwalo:",
-                    paymentTitle: "Okusasula",
-                    paymentMethod: "Ensimbi ku kifo we mulondela",
-                    paymentNote: "Mutegeke ensimbi entuufu nga loli atuuse.",
-                    submitBtn: "Kuwandiisa Ekifo kyange ku Loli",
-                    helpText: "Wetaaga obuyambi? Yogera n'omukulu w'ekyalo.",
-                    callBtn: "Kuba Omukulu w'ekyalo",
-                    dateMsgAvailable: "Loli atuuliddewo. Genda naye!",
-                    dateMsgFull: "Loli ajjudde. Lonadwa olunaku olulala."
+                    header: "Kuwandiisa Ekifo ku Loli", subHeader: "Mugabane olugendo, mutereze ssente, era mutuse eby'okulima byammwe mu katale.", selectArea: "Londa Ekitundu Kyo", selectAreaSub: "Londa ekyalo kyo oba ekifo gy'oli.", areaLabel: "Ekitundu kyo", proceedBtn: "Genda mu Maaso", groupsTitle: "Ebibiina ebiriyo mu", groupsSub: "Genda mu kibiina eky'omanyi oba okyatondewo ekipya okutereka ssente.", newGroupBtn: "Tondawo Ekibiina Ekipya", joinGroupBtn: "Genda mu Kibiina", yourDetails: "Ebikukwatako", nameLabel: "Erinnya lyo", phoneLabel: "Namba y'essimu", produceDetails: "Eby'okulima byo", produceLabel: "Otumira ki?", quantityLabel: "Ebiwuufu oba ebinywa bimeka?", journeyDetails: "Eby'olugendo", marketLabel: "Katale ki?", pickupLabel: "Olunaku n'ebiseera by'okulonda", summaryTitle: "Eby'okukwandiisa byo", pickupTime: "Okulonda:", estimatedCost: "Ekigeregeranyo ky'omutwalo:", paymentTitle: "Okusasula", paymentNote: "Londa engeri gy'osasulamu wansi:", submitBtn: "Kuwandiisa Ekifo kyange ku Loli", chatText: "Wetaaga obuyambi oba okwogera n'ekibiina kyo?", chatBtn: "Yogera ku WhatsApp", costBase: "Ekituufu ku ka-biwuufu:", costDiscount: "Okukendeeza:", costFinal: "Omutwalo ogw'enkomerero:", groupName: "Ekibiina", members: "abantu", paidStatus: "Kisasuddwa", pendingStatus: "Kisigaddeyo okusasulwa", failedStatus: "Kigaanye", rebookBtn: "Kuwandiisa nate", payMoMoBtn: "Sasula ku MTN MoMo", payAirtelBtn: "Sasula ku Airtel Money", paymentModalTitle: "Sasula ku Mobile Money", paymentModalMsg: "Okusasula, kola *165# ku ssimu yo era ogoberere amateeka okutuma ssente:", mobileMoneyNumber: "Namba ya Mobile Money:", confirmPayment: "Nkoze okusasula", paymentSuccess: "Okusasula kugenze bulungi! Eby'okukwandiisa bikoleddwa.", paymentFailure: "Okusasula kugaanye. Kodda nate.", bookingHistoryTitle: "Eby'okukwandiisa byo ebyayita", noGroups: "Tewali bibiina. Beera ow'olubereberye okutondawo ekibiina!", userIdLabel: "Namba yo:", connecting: "Tukufuna ku database...", noBookings: "Tolina by'okukwandiisa ebyayita.", paymentInfoTitle: "Maliriza Okusasula", modalTitleSuccess: "Kigendedde bulungi!", modalTitleError: "Ensobi!", modalMessagePaymentSuccess: "Eby'okukwandiisa bikoleddwa era okusasula kulondeddwa.", modalMessagePaymentError: "Wabaddewo ensobi mu kisasula. Kodda nate oba weerabire abakola."
                 },
                 sw: {
-                    header: "Weka Nafasi kwenye Lori",
-                    subHeader: "Shiriki safari, okoa pesa, na upeleke mazao yako sokoni.",
-                    yourDetails: "Maelezo Yako",
-                    nameLabel: "Jina lako",
-                    villageLabel: "Kijiji chako",
-                    phoneLabel: "Namba ya simu",
-                    produceDetails: "Maelezo ya Mazao Yako",
-                    produceLabel: "Unatuma nini?",
-                    quantityLabel: "Mifuko au vifurushi ngapi?",
-                    journeyDetails: "Maelezo ya Safari",
-                    marketLabel: "Soko gani?",
-                    dateLabel: "Tarehe ya kuchukuliwa?",
-                    summaryTitle: "Muhtasari wa Kuhifadhi Kwako",
-                    estimatedCost: "Makadirio ya Gharama:",
-                    paymentTitle: "Malipo",
-                    paymentMethod: "Pesa taslimu ukichukuliwa",
-                    paymentNote: "Tafadhali uwe na pesa kamili wakati lori litakapofika.",
-                    submitBtn: "Weka Nafasi Yangu Kwenye Lori",
-                    helpText: "Unahitaji msaada? Ongea na Msimamizi wa Kijiji.",
-                    callBtn: "Piga Msimamizi",
-                    dateMsgAvailable: "Lori imepangwa. Jiunge na kundi!",
-                    dateMsgFull: "Lori hili limejaa. Tafadhali chagua siku nyingine."
+                    header: "Weka Nafasi kwenye Lori", subHeader: "Shiriki safari, okoa pesa, na upeleke mazao yako sokoni.", selectArea: "Chagua Eneo Lako", selectAreaSub: "Tafadhali chagua kijiji chako au eneo ulipo sasa.", areaLabel: "Eneo lako", proceedBtn: "Endelea", groupsTitle: "Vikundi vilivyohifadhiwa hapa", groupsSub: "Jiunge na kikundi kilichopo au unda kipya ili kuokoa pesa za usafiri.", newGroupBtn: "Unda Kikundi Kipya", joinGroupBtn: "Jiunge na Kikundi", yourDetails: "Maelezo Yako", nameLabel: "Jina lako", phoneLabel: "Namba ya simu", produceDetails: "Maelezo ya Mazao Yako", produceLabel: "Unatuma nini?", quantityLabel: "Mifuko au vifurushi ngapi?", journeyDetails: "Maelezo ya Safari", marketLabel: "Soko gani?", pickupLabel: "Tarehe na Saa ya Kuchukuliwa", summaryTitle: "Muhtasari wa Kuhifadhi Kwako", pickupTime: "Kuchukuliwa:", estimatedCost: "Makadirio ya Gharama:", paymentTitle: "Malipo", paymentNote: "Tafadhali chagua njia yako ya malipo hapa chini:", submitBtn: "Weka Nafasi Yangu Kwenye Lori", chatText: "Una maswali au unahitaji kupiga gumzo na kikundi chako?", chatBtn: "Piga gumzo kwenye WhatsApp", costBase: "Kiwango cha Msingi kwa mfuko:", costDiscount: "Punguzo la Kikundi:", costFinal: "Gharama ya Mwisho:", groupName: "Kikundi", members: "wanachama", paidStatus: "Imelipwa", pendingStatus: "Inasubiri Malipo", failedStatus: "Imeshindwa", rebookBtn: "Hifadhi tena", payMoMoBtn: "Lipa kwa MTN MoMo", payAirtelBtn: "Lipa kwa Airtel Money", paymentModalTitle: "Lipa kwa Mobile Money", paymentModalMsg: "Ili kulipa, piga *165# kwenye simu yako na ufuate maagizo ya kutuma kiasi kwa:", mobileMoneyNumber: "Namba ya Mobile Money:", confirmPayment: "Nimelipa", paymentSuccess: "Malipo yamefanikiwa! Uhifadhi wako umethibitishwa.", paymentFailure: "Malipo yameshindwa. Tafadhali jaribu tena.", bookingHistoryTitle: "Uhifadhi wako uliopita", noGroups: "Hakuna vikundi vilivyopo. Kuwa wa kwanza kuunda kikundi!", userIdLabel: "Namba yako:", connecting: "Inaunganisha na hifadhidata...", noBookings: "Huna uhifadhi wowote uliopita.", paymentInfoTitle: "Kamilisha Malipo Yako", modalTitleSuccess: "Imefanikiwa!", modalTitleError: "Hitilafu!", modalMessagePaymentSuccess: "Uhifadhi wako umethibitishwa na malipo yamechukuliwa.", modalMessagePaymentError: "Kulitokea hitilafu wakati wa kuchakata malipo yako. Tafadhali jaribu tena au wasiliana na usaidizi."
                 },
                 fr: {
-                    header: "Réservez une Place sur le Camion",
-                    subHeader: "Partagez le trajet, économisez de l'argent et amenez vos produits au marché.",
-                    yourDetails: "Vos Coordonnées",
-                    nameLabel: "Votre nom",
-                    villageLabel: "Votre village",
-                    phoneLabel: "Numéro de téléphone",
-                    produceDetails: "Détails de vos produits",
-                    produceLabel: "Qu'envoyez-vous?",
-                    quantityLabel: "Combien de sacs ou de paquets?",
-                    journeyDetails: "Détails du Trajet",
-                    marketLabel: "Quel marché?",
-                    dateLabel: "Date de ramassage préférée?",
-                    summaryTitle: "Résumé de votre réservation",
-                    estimatedCost: "Coût estimé:",
-                    paymentTitle: "Paiement",
-                    paymentMethod: "Paiement en espèces à la collecte",
-                    paymentNote: "Veuillez avoir le montant exact prêt à l'arrivée du camion.",
-                    submitBtn: "Réserver ma Place",
-                    helpText: "Besoin d'aide? Parlez à votre coordinateur de village.",
-                    callBtn: "Appeler le coordinateur",
-                    dateMsgAvailable: "Un camion est prévu. Rejoignez le groupe!",
-                    dateMsgFull: "Ce camion est plein. Veuillez choisir un autre jour."
+                    header: "Réservez une Place sur le Camion", subHeader: "Partagez le trajet, économisez de l'argent et amenez vos produits au marché.", selectArea: "Sélectionnez votre zone", selectAreaSub: "Veuillez choisir votre village ou votre emplacement actuel.", areaLabel: "Votre zone", proceedBtn: "Continuer", groupsTitle: "Groupes enregistrés à", groupsSub: "Rejoignez un groupe existant ou créez-en un nouveau pour économiser sur les frais de transport.", newGroupBtn: "Créer un nouveau groupe", joinGroupBtn: "Rejoindre le groupe", yourDetails: "Vos Coordonnées", nameLabel: "Votre nom", phoneLabel: "Numéro de téléphone", produceDetails: "Détails de vos produits", produceLabel: "Qu'envoyez-vous?", quantityLabel: "Combien de sacs ou de paquets?", journeyDetails: "Détails du Trajet", marketLabel: "Quel marché?", pickupLabel: "Date et heure de ramassage préférées", summaryTitle: "Résumé de votre réservation", pickupTime: "Ramassage:", estimatedCost: "Coût estimé:", paymentTitle: "Paiement", paymentNote: "Veuillez choisir votre méthode de paiement ci-dessous:", submitBtn: "Réserver ma Place", chatText: "Vous avez des questions ou besoin de discuter avec votre groupe?", chatBtn: "Discuter sur WhatsApp", costBase: "Tarif de base par sac:", costDiscount: "Remise de groupe:", costFinal: "Coût final:", groupName: "Groupe", members: "membres", paidStatus: "Payé", pendingStatus: "Paiement en attente", failedStatus: "Échec", rebookBtn: "Réserver à nouveau", payMoMoBtn: "Payer avec MTN MoMo", payAirtelBtn: "Payer avec Airtel Money", paymentModalTitle: "Payer avec Mobile Money", paymentModalMsg: "Pour payer, composez le *165# sur votre téléphone et suivez les instructions pour envoyer le montant à:", mobileMoneyNumber: "Numéro Mobile Money:", confirmPayment: "J'ai payé", paymentSuccess: "Paiement réussi ! Votre réservation est confirmée.", paymentFailure: "Le paiement a échoué. Veuillez réessayer.", bookingHistoryTitle: "Vos réservations passées", noGroups: "Aucun groupe actif trouvé. Soyez le premier à en créer un!", userIdLabel: "Votre numéro:", connecting: "Connexion à la base de données et authentification...", noBookings: "Vous n'avez pas de réservations passées.", paymentInfoTitle: "Terminez Votre Paiement", modalTitleSuccess: "Succès !", modalTitleError: "Erreur !", modalMessagePaymentSuccess: "Votre réservation est confirmée et le paiement est enregistré.", modalMessagePaymentError: "Une erreur est survenue lors du traitement de votre paiement. Veuillez réessayer ou contacter le support."
                 }
             };
-
+            
             function updateLanguage(lang) {
-                document.querySelector('h1').textContent = translations[lang].header;
-                document.querySelector('header p').textContent = translations[lang].subHeader;
-                document.querySelectorAll('h2')[0].textContent = translations[lang].yourDetails;
-                document.querySelector('label[for="name"]').textContent = translations[lang].nameLabel;
-                document.querySelector('label[for="village"]').textContent = translations[lang].villageLabel;
-                document.querySelector('label[for="phone"]').textContent = translations[lang].phoneLabel;
-                document.querySelectorAll('h2')[1].textContent = translations[lang].produceDetails;
-                document.querySelector('label[for="produce"]').textContent = translations[lang].produceLabel;
-                document.querySelector('label[for="quantity"]').textContent = translations[lang].quantityLabel;
-                document.querySelectorAll('h2')[2].textContent = translations[lang].journeyDetails;
-                document.querySelector('label[for="market"]').textContent = translations[lang].marketLabel;
-                document.querySelector('.summary h3').textContent = translations[lang].summaryTitle;
-                document.querySelector('.cost').textContent = translations[lang].estimatedCost;
-                document.querySelector('.payment-options h4').textContent = translations[lang].paymentTitle;
-                document.querySelector('.payment-options p:nth-child(2)').textContent = translations[lang].paymentMethod;
-                document.querySelector('.payment-options p:nth-child(3)').textContent = translations[lang].paymentNote;
-                document.querySelector('.btn-submit').textContent = translations[lang].submitBtn;
-                document.querySelector('.coordinator-call-section p').textContent = translations[lang].helpText;
-                document.querySelector('.btn-call-coordinator').innerHTML = `<i class="fas fa-phone"></i> ${translations[lang].callBtn}`;
+                const t = translations[lang];
+                document.querySelector('h1').textContent = t.header;
+                document.querySelector('header p').textContent = t.subHeader;
+                document.querySelector('#userIdDisplay p strong').textContent = t.userIdLabel;
+                document.querySelector('#loadingMessage p').textContent = t.connecting;
+                document.querySelector('#areaSelection h2').textContent = t.selectArea;
+                document.querySelector('#areaSelection p').textContent = t.selectAreaSub;
+                document.querySelector('label[for="area"]').textContent = t.areaLabel;
+                document.getElementById('selectAreaBtn').textContent = t.proceedBtn;
+                document.querySelector('#groupDisplay h2').textContent = `${t.groupsTitle} ${currentSelectedArea}`;
+                document.querySelector('#groupDisplay p').textContent = t.groupsSub;
+                document.getElementById('createNewGroupBtn').textContent = t.newGroupBtn;
+                document.querySelector('#bookingHistory h3').textContent = t.bookingHistoryTitle;
+                document.querySelectorAll('h2')[2].textContent = t.yourDetails;
+                document.querySelector('label[for="name"]').textContent = t.nameLabel;
+                document.querySelector('label[for="phone"]').textContent = t.phoneLabel;
+                document.querySelectorAll('h2')[3].textContent = t.produceDetails;
+                document.querySelector('label[for="produce"]').textContent = t.produceLabel;
+                document.querySelector('label[for="quantity"]').textContent = t.quantityLabel;
+                document.querySelectorAll('h2')[4].textContent = t.journeyDetails;
+                document.querySelector('label[for="market"]').textContent = t.marketLabel;
+                document.querySelector('label[for="pickupDateTime"]').textContent = t.pickupLabel;
+                document.querySelector('.summary h3').textContent = t.summaryTitle;
+                document.querySelector('.summary p:nth-child(4) strong').textContent = t.pickupTime;
+                document.querySelector('.cost').textContent = t.estimatedCost;
+                document.querySelector('.payment-options h4').textContent = t.paymentTitle;
+                document.querySelector('.payment-options p:nth-child(2)').textContent = t.paymentNote;
+                document.getElementById('payMomoBtn').innerHTML = `<i class="fas fa-mobile-alt"></i> ${t.payMoMoBtn}`;
+                document.getElementById('payAirtelBtn').innerHTML = `<i class="fas fa-mobile-alt"></i> ${t.payAirtelBtn}`;
+                document.querySelector('.chat-section p').textContent = t.chatText;
+                document.querySelector('.btn-chat').innerHTML = `<i class="fab fa-whatsapp"></i> ${t.chatBtn}`;
+                document.querySelector('#paymentInfo h4').textContent = t.paymentInfoTitle;
+                document.querySelector('#paymentInfo p:nth-child(2)').textContent = `${t.paymentModalMsg}`;
+                document.getElementById('confirmPaymentBtn').textContent = t.confirmPayment;
+            }
 
-                document.querySelectorAll('.date-button').forEach(button => {
-                    const status = button.classList.contains('selected') ? 'available' : 'full';
-                    button.innerHTML = `<strong>${new Date(button.dataset.date).toDateString()}</strong> - ${translations[lang][`dateMsg${status.charAt(0).toUpperCase() + status.slice(1)}`]}`;
+            // Function to fetch areas from Firestore and render them
+            function fetchAndRenderAreas() {
+                const areasCollection = collection(db, `artifacts/${appId}/public/data/areas`);
+                onSnapshot(areasCollection, (snapshot) => {
+                    const areas = snapshot.docs.map(doc => doc.data());
+                    areaSelect.innerHTML = '<option value="">Select your area</option>';
+                    areas.forEach(area => {
+                        const option = document.createElement('option');
+                        option.value = area.name;
+                        option.textContent = area.name;
+                        areaSelect.appendChild(option);
+                    });
                 });
             }
 
-            langSelector.addEventListener('change', (e) => {
-                updateLanguage(e.target.value);
-            });
+            // Setup Firestore listeners for real-time data
+            function setupFirestoreListeners() {
+                // Listener for public groups
+                const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
+                onSnapshot(groupsCollection, (snapshot) => {
+                    const groups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    liveGroups = groups;
+                    if (!groupDisplay.classList.contains('hidden')) {
+                        renderGroups(currentSelectedArea);
+                    }
+                });
 
-            const mockAvailability = {
-                'Nakasero Market': [{ date: '2025-08-15', status: 'available' }],
-                'Owino Market': [{ date: '2025-08-16', status: 'available' }]
-            };
+                // Listener for private user bookings
+                const bookingsCollection = collection(db, `artifacts/${appId}/users/${userId}/bookings`);
+                onSnapshot(bookingsCollection, (snapshot) => {
+                    const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    liveBookings = bookings;
+                    renderBookingHistory(liveBookings);
+                });
+            }
 
-            document.getElementById('market').addEventListener('change', (e) => {
-                const market = e.target.value;
-                dateOptionsContainer.innerHTML = '';
-                if (mockAvailability[market]) {
-                    mockAvailability[market].forEach(item => {
-                        const button = document.createElement('button');
-                        button.type = 'button';
-                        button.className = `date-button ${item.status}`;
-                        button.dataset.date = item.date;
-                        const lang = langSelector.value;
-                        const messageKey = `dateMsg${item.status.charAt(0).toUpperCase() + item.status.slice(1)}`;
-                        button.innerHTML = `<strong>${new Date(item.date).toDateString()}</strong> - ${translations[lang][messageKey]}`;
-                        dateOptionsContainer.appendChild(button);
-                        if (item.status === 'available') {
-                            button.addEventListener('click', () => {
-                                document.querySelectorAll('.date-button').forEach(btn => btn.classList.remove('selected'));
-                                button.classList.add('selected');
-                                form.dispatchEvent(new Event('input'));
-                            });
-                        }
-                    });
+            // Step 1: Handle area selection
+            selectAreaBtn.addEventListener('click', () => {
+                currentSelectedArea = areaSelect.value;
+                if (currentSelectedArea) {
+                    areaSelection.classList.add('hidden');
+                    currentAreaName.textContent = currentSelectedArea;
+                    renderGroups(currentSelectedArea);
+                    groupDisplay.classList.remove('hidden');
+                    bookingHistorySection.classList.remove('hidden');
                 }
             });
 
-            form.addEventListener('input', () => {
-                summaryName.textContent = document.getElementById('name').value || '...';
-                const produceSelect = document.getElementById('produce');
-                const selectedProduceText = produceSelect.options[produceSelect.selectedIndex].text;
-                summaryProduce.textContent = `${selectedProduceText} (${quantityInput.value} bags)`;
-                const marketSelect = document.getElementById('market');
-                const selectedMarketText = marketSelect.options[marketSelect.selectedIndex].text;
-                summaryMarket.textContent = selectedMarketText || '...';
-                const selectedDateBtn = document.querySelector('.date-button.selected');
-                summaryDate.textContent = selectedDateBtn ? selectedDateBtn.dataset.date : '...';
-                const cost = parseInt(quantityInput.value) * 5000;
-                summaryCost.textContent = `UGX ${cost.toLocaleString()}`;
+            // Step 2: Render groups
+            function renderGroups(area) {
+                groupList.innerHTML = '';
+                const t = translations[langSelector.value];
+                const groupsInArea = liveGroups.filter(g => g.area === area);
+                if (groupsInArea.length === 0) {
+                    groupList.innerHTML = `<li style="text-align: center;">${t.noGroups}</li>`;
+                } else {
+                    groupsInArea.forEach(group => {
+                        const li = document.createElement('li');
+                        li.className = 'group-item';
+                        li.dataset.id = group.id;
+                        li.dataset.members = group.members.length;
+                        const bagsText = group.bags > 0 ? `${group.bags} bags to ${group.destination}` : 'Waiting for first booking...';
+                        li.innerHTML = `
+                            <div class="group-info">
+                                <strong>${group.name}</strong><br>
+                                ${group.members.length} ${t.members} | ${bagsText}
+                            </div>
+                            <button class="btn-join" data-group-id="${group.id}">${t.joinGroupBtn}</button>
+                        `;
+                        groupList.appendChild(li);
+                    });
+                }
+                
+                document.querySelectorAll('.btn-join').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const groupId = btn.dataset.groupId;
+                        const groupToJoin = liveGroups.find(g => g.id === groupId);
+                        // Update group size for cost calculation
+                        currentGroupSize = groupToJoin ? groupToJoin.members.length + 1 : 1;
+                        currentGroupRef = doc(db, `artifacts/${appId}/public/data/groups`, groupId);
+                        groupDisplay.classList.add('hidden');
+                        bookingForm.classList.remove('hidden');
+                        bookingForm.dispatchEvent(new Event('input'));
+                    });
+                });
+            }
+
+            createNewGroupBtn.addEventListener('click', async () => {
+                const groupName = prompt('Enter a name for your new group:');
+                if (groupName) {
+                    currentGroupSize = 1;
+                    const newGroupRef = doc(collection(db, `artifacts/${appId}/public/data/groups`));
+                    currentGroupRef = newGroupRef;
+                    await setDoc(newGroupRef, {
+                        name: groupName,
+                        area: currentSelectedArea,
+                        members: [userId],
+                        bags: 0,
+                        destination: '',
+                        pickupTime: '',
+                        firstBookingMade: false
+                    });
+                    
+                    groupDisplay.classList.add('hidden');
+                    bookingForm.classList.remove('hidden');
+                    bookingForm.dispatchEvent(new Event('input'));
+                }
             });
 
+            // Render Booking History
+            function renderBookingHistory(bookings) {
+                bookingHistoryList.innerHTML = '';
+                const t = translations[langSelector.value];
+                if (bookings.length === 0) {
+                    bookingHistoryList.innerHTML = `<li style="text-align: center;">${t.noBookings}</li>`;
+                    return;
+                }
+                bookings.forEach(booking => {
+                    const li = document.createElement('li');
+                    let statusClass = '';
+                    let statusText = '';
+                    if (booking.paymentStatus === 'paid') {
+                        statusClass = 'status-paid';
+                        statusText = t.paidStatus;
+                    } else if (booking.paymentStatus === 'pending') {
+                        statusClass = 'status-pending';
+                        statusText = t.pendingStatus;
+                    } else {
+                        statusClass = 'status-failed';
+                        statusText = t.failedStatus;
+                    }
+
+                    li.innerHTML = `
+                        <strong>${booking.produce}</strong> (${booking.quantity} bags) to ${booking.market} on ${booking.pickupDateTime.slice(0, 10)}
+                        <br>
+                        ${t.estimatedCost} <strong>UGX ${booking.cost.toLocaleString()}</strong> | 
+                        <span class="${statusClass}">${statusText}</span>
+                    `;
+                    bookingHistoryList.appendChild(li);
+                });
+            }
+
+            // Dynamic Cost Estimation
+            const getDistanceToMarket = (market) => {
+                const distances = { 'Owino Market': 45, 'Nakasero Market': 40, 'Kalerwe Market': 42, 'Mpigi Market': 5 };
+                return distances[market] || 50;
+            };
+
+            const calculateCost = () => {
+                const produceType = produceInput.value;
+                const quantity = parseInt(quantityInput.value);
+                const market = marketInput.value;
+
+                if (!produceType || !market || !quantity) return { total: 0 };
+                
+                const baseRatePerBag = produceRates[produceType] || 3000;
+                const distanceFactor = getDistanceToMarket(market) / 40;
+                const baseCost = baseRatePerBag * quantity * distanceFactor;
+
+                const discountPerFarmer = 0.03;
+                const totalDiscount = Math.min(currentGroupSize * discountPerFarmer, 0.25);
+
+                const finalCost = baseCost * (1 - totalDiscount);
+                
+                const t = translations[langSelector.value];
+                costBreakdown.innerHTML = `
+                    <p>${t.costBase} <strong>UGX ${(baseRatePerBag * distanceFactor).toLocaleString()}/bag</strong></p>
+                    <p>${t.costDiscount} (${currentGroupSize} ${t.members}): <strong>${(totalDiscount * 100).toFixed(0)}%</strong></p>
+                    <p><strong>${t.costFinal} UGX ${finalCost.toFixed(0).toLocaleString()}</strong></p>
+                `;
+
+                return { total: finalCost };
+            };
+
+            // Live update of summary section
+            bookingForm.addEventListener('input', () => {
+                summaryName.textContent = nameInput.value || '...';
+                const selectedProduceText = produceInput.options[produceInput.selectedIndex].text;
+                summaryProduce.textContent = `${selectedProduceText} (${quantityInput.value || 0} bags)`;
+                const selectedMarketText = marketInput.options[marketInput.selectedIndex].text;
+                summaryMarket.textContent = selectedMarketText || '...';
+                summaryPickupDateTime.textContent = pickupDateTimeInput.value || '...';
+                const { total } = calculateCost();
+                summaryCost.textContent = `UGX ${total.toFixed(0).toLocaleString()}`;
+            });
+
+            // Quantity button functionality
             document.querySelectorAll('.btn-quantity').forEach(button => {
                 button.addEventListener('click', () => {
                     let value = parseInt(quantityInput.value);
@@ -535,41 +830,70 @@
                     } else if (button.dataset.action === 'decrease' && value > 1) {
                         quantityInput.value = value - 1;
                     }
-                    form.dispatchEvent(new Event('input'));
+                    bookingForm.dispatchEvent(new Event('input'));
                 });
             });
 
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const selectedDateBtn = document.querySelector('.date-button.selected');
-                if (!selectedDateBtn) {
-                    alert('Please select a pickup date from the available options.');
-                    return;
-                }
-                const mockDriver = { name: 'Kato James', lorryReg: 'UBK 123G' };
-                driverName.textContent = mockDriver.name;
-                lorryReg.textContent = mockDriver.lorryReg;
-                driverDetailsSection.style.display = 'block';
-                alert('Booking confirmed! You will receive a confirmation message with the driver’s details shortly.');
-
-                // Here you would add code to save the booking to Firestore
-                // For example:
-                // try {
-                //     const docRef = await addDoc(collection(db, "bookings"), {
-                //         name: document.getElementById('name').value,
-                //         produce: document.getElementById('produce').value,
-                //         quantity: parseInt(quantityInput.value),
-                //         market: document.getElementById('market').value,
-                //         date: selectedDateBtn.dataset.date
-                //     });
-                //     console.log("Document written with ID: ", docRef.id);
-                // } catch (e) {
-                //     console.error("Error adding document: ", e);
-                // }
+            // Payment Button Logic
+            payMomoBtn.addEventListener('click', () => {
+                paymentInfo.classList.remove('hidden');
+                confirmPaymentBtn.dataset.method = 'momo';
+            });
+            payAirtelBtn.addEventListener('click', () => {
+                paymentInfo.classList.remove('hidden');
+                confirmPaymentBtn.dataset.method = 'airtel';
             });
 
+            confirmPaymentBtn.addEventListener('click', async () => {
+                const t = translations[langSelector.value];
+                try {
+                    // Update the group in Firestore
+                    await updateDoc(currentGroupRef, {
+                        members: arrayUnion(userId),
+                        bags: increment(parseInt(quantityInput.value)),
+                        destination: marketInput.value,
+                        pickupTime: pickupDateTimeInput.value
+                    });
+
+                    // Save the user's booking to Firestore
+                    const newBooking = {
+                        name: nameInput.value,
+                        phone: phoneInput.value,
+                        produce: produceInput.value,
+                        quantity: parseInt(quantityInput.value),
+                        market: marketInput.value,
+                        pickupDateTime: pickupDateTimeInput.value,
+                        cost: calculateCost().total,
+                        paymentStatus: 'paid' // Assuming payment is successful
+                    };
+                    const bookingsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/bookings`);
+                    await addDoc(bookingsCollectionRef, newBooking);
+                    
+                    showModal(t.modalTitleSuccess, t.modalMessagePaymentSuccess);
+                    
+                    // Hide booking form, show history and groups
+                    bookingForm.classList.add('hidden');
+                    groupDisplay.classList.remove('hidden');
+                    bookingHistorySection.classList.remove('hidden');
+                    
+                } catch (e) {
+                    console.error("Error saving booking or updating group: ", e);
+                    showModal(t.modalTitleError, t.modalMessagePaymentError);
+                }
+            });
+            
+            langSelector.addEventListener('change', () => {
+                updateLanguage(langSelector.value);
+                if (!areaSelection.classList.contains('hidden') && currentSelectedArea) {
+                    renderGroups(currentSelectedArea);
+                }
+                bookingForm.dispatchEvent(new Event('input'));
+            });
+
+            // Initial state setup
             updateLanguage(langSelector.value);
-            form.dispatchEvent(new Event('input'));
+            pickupDateTimeInput.value = new Date().toISOString().slice(0, 16);
+            bookingForm.dispatchEvent(new Event('input'));
         });
     </script>
 </body>
