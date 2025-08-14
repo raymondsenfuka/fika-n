@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Your Lorry Space</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #004d40;
+            margin-bottom: 5px;
+        }
+        p {
+            color: #666;
+        }
+        .section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .section h2 {
+            color: #00695c;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="tel"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .quantity-input {
+            display: flex;
+            align-items: center;
+        }
+        .quantity-input input {
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        .quantity-input input::-webkit-outer-spin-button,
+        .quantity-input input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .btn-quantity {
+            background-color: #004d40;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .date-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #e0f2f1;
+            border: 1px solid #00796b;
+            border-radius: 4px;
+            text-align: left;
+            cursor: pointer;
+        }
+        .date-button.selected {
+            background-color: #00796b;
+            color: #fff;
+            border: 1px solid #004d40;
+        }
+        .date-button:not(.selected):hover {
+            background-color: #cfd8dc;
+        }
+        .summary {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .summary h3 {
+            margin-top: 0;
+            color: #00695c;
+        }
+        .summary p {
+            margin: 5px 0;
+        }
+        .cost {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+        #driver-details {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f1f8e9;
+            border: 1px dashed #c5e1a5;
+            border-radius: 4px;
+        }
+        .payment-options {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .actions {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-submit {
+            background-color: #00796b;
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1em;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-submit:hover {
+            background-color: #004d40;
+        }
+        .coordinator-call-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn-call-coordinator {
+            display: inline-block;
+            background-color: #2196f3;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .btn-call-coordinator i {
+            margin-right: 8px;
+        }
+        .language-selector {
+            margin-top: 20px;
+            text-align: center;
+        }
+        @media (min-width: 601px) {
+            body {
+                padding: 40px;
+            }
+            .container {
+                padding: 40px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            }
+            .form-group {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            .form-group label {
+                flex-basis: 30%;
+                margin-bottom: 0;
+            }
+            .form-group input,
+            .form-group select,
+            .quantity-input {
+                flex-basis: 70%;
+            }
+            .actions {
+                margin-top: 30px;
+            }
+            .btn-submit {
+                width: auto;
+            }
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Collective Transportation</h1>
+            <p>Share the journey, save money, and get your produce to the market.</p>
+        </header>
+
+        <form id="bookingForm">
+            <div class="section">
+                <h2>Your Details</h2>
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="village">Your Village</label>
+                    <input type="text" id="village" name="village" placeholder="e.g., Kituuka, Mpigi" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="e.g., 0771 234 567" required>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Your Produce Details</h2>
+                <div class="form-group">
+                    <label for="produce">What are you sending?</label>
+                    <select id="produce" name="produce" required>
+                        <option value="">Select produce type</option>
+                        <option value="Matoke">Matoke (Green Bananas)</option>
+                        <option value="Cassava">Cassava</option>
+                        <option value="Maize">Maize (Corn)</option>
+                        <option value="Sweet Potatoes">Sweet Potatoes</option>
+                        <option value="Tomatoes">Tomatoes</option>
+                        <option value="Onions">Onions</option>
+                        <option value="Cabbages">Cabbages</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">How many bags or bundles?</label>
+                    <div class="quantity-input">
+                        <button type="button" class="btn-quantity" data-action="decrease">-</button>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" required>
+                        <button type="button" class="btn-quantity" data-action="increase">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Journey Details</h2>
+                <div class="form-group">
+                    <label for="market">Which market?</label>
+                    <select id="market" name="market" required>
+                        <option value="">Select a market</option>
+                        <option value="Owino Market">St. Balikuddembe Market (Owino)</option>
+                        <option value="Nakasero Market">Nakasero Market</option>
+                        <option value="Kalerwe Market">Kalerwe Market</option>
+                        <option value="Mpigi Market">Mpigi Town Market</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="date-availability-group">
+                    <label>Preferred pickup date?</label>
+                    <div id="date-options">
+                        </div>
+                </div>
+            </div>
+
+            <div class="summary">
+                <h3>Your Booking Summary</h3>
+                <p><strong>Name:</strong> <span id="summaryName"></span></p>
+                <p><strong>Produce:</strong> <span id="summaryProduce"></span></p>
+                <p><strong>Market:</strong> <span id="summaryMarket"></span></p>
+                <p><strong>Date:</strong> <span id="summaryDate"></span></p>
+                <p class="cost"><strong>Estimated Cost:</strong> <span id="summaryCost">UGX 0</span></p>
+
+                <div id="driver-details" style="display: none;">
+                    <h4>Lorry & Driver Details</h4>
+                    <p><strong>Driver:</strong> <span id="driverName"></span></p>
+                    <p><strong>Lorry Reg:</strong> <span id="lorryReg"></span></p>
+                </div>
+                
+                <div class="payment-options">
+                    <h4>Payment</h4>
+                    <p><strong>Payment Method:</strong> Cash on pickup</p>
+                    <p>Please have the exact amount ready when the lorry arrives.</p>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-submit">Book My Lorry Space</button>
+            </div>
+            
+        </form>
+
+        <div class="coordinator-call-section">
+            <p>Need help? Talk to your Village Coordinator.</p>
+            <a href="tel:+256771234567" class="btn-call-coordinator">
+                <i class="fas fa-phone"></i> Call Coordinator
+            </a>
+        </div>
+        
+        <div class="language-selector">
+            <label for="lang">Select Language:</label>
+            <select id="lang">
+                <option value="en">English</option>
+                <option value="lg">Luganda</option>
+                <option value="sw">Kiswahili</option>
+                <option value="fr">French</option>
+            </select>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDq3uO76nnqqPgPaFfXpOTEnFSXRqXneWU", 
+            authDomain: "fika-connect-5f844.firebaseapp.com",
+            projectId: "fika-connect-5f844",
+            storageBucket: "fika-connect-5f844.appspot.com",
+            messagingSenderId: "124223307329",
+            appId: "1:124223307329:web:76c547b91dcd25205550c0"
+        };
+        
+        // Initialize Firebase
+        const { initializeApp } = firebase;
+        const { getFirestore } = firebase.firestore;
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // All other JavaScript logic goes here
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('bookingForm');
+            const quantityInput = document.getElementById('quantity');
+            const summaryName = document.getElementById('summaryName');
+            const summaryProduce = document.getElementById('summaryProduce');
+            const summaryMarket = document.getElementById('summaryMarket');
+            const summaryDate = document.getElementById('summaryDate');
+            const summaryCost = document.getElementById('summaryCost');
+            const driverDetailsSection = document.getElementById('driver-details');
+            const driverName = document.getElementById('driverName');
+            const lorryReg = document.getElementById('lorryReg');
+            const dateOptionsContainer = document.getElementById('date-options');
+            const langSelector = document.getElementById('lang');
+
+            const translations = {
+                en: {
+                    header: "Book a Space on the Lorry",
+                    subHeader: "Share the journey, save money, and get your produce to the market.",
+                    yourDetails: "Your Details",
+                    nameLabel: "Your Name",
+                    villageLabel: "Your Village",
+                    phoneLabel: "Phone Number",
+                    produceDetails: "Your Produce Details",
+                    produceLabel: "What are you sending?",
+                    quantityLabel: "How many bags or bundles?",
+                    journeyDetails: "Journey Details",
+                    marketLabel: "Which market?",
+                    dateLabel: "Preferred pickup date?",
+                    summaryTitle: "Your Booking Summary",
+                    estimatedCost: "Estimated Cost:",
+                    paymentTitle: "Payment",
+                    paymentMethod: "Cash on pickup",
+                    paymentNote: "Please have the exact amount ready when the lorry arrives.",
+                    submitBtn: "Book My Lorry Space",
+                    helpText: "Need help? Talk to your Village Coordinator.",
+                    callBtn: "Call Coordinator",
+                    dateMsgAvailable: "A lorry is scheduled. Join the group!",
+                    dateMsgFull: "This lorry is full. Please choose another day."
+                },
+                lg: {
+                    header: "Kuwandiisa Ekifo ku Loli",
+                    subHeader: "Mugabane olugendo, mutereze ssente, era mutuse eby'okulima byammwe mu katale.",
+                    yourDetails: "Ebikukwatako",
+                    nameLabel: "Erinnya lyo",
+                    villageLabel: "Ekitundu kyo",
+                    phoneLabel: "Namba y'essimu",
+                    produceDetails: "Eby'okulima byo",
+                    produceLabel: "Otumira ki?",
+                    quantityLabel: "Ebiwuufu oba ebinywa bimeka?",
+                    journeyDetails: "Eby'olugendo",
+                    marketLabel: "Katale ki?",
+                    dateLabel: "Olunaku lw'oyagala okutwaliramu?",
+                    summaryTitle: "Eby'okukwandiisa byo",
+                    estimatedCost: "Ekigeregeranyo ky'omutwalo:",
+                    paymentTitle: "Okusasula",
+                    paymentMethod: "Ensimbi ku kifo we mulondela",
+                    paymentNote: "Mutegeke ensimbi entuufu nga loli atuuse.",
+                    submitBtn: "Kuwandiisa Ekifo kyange ku Loli",
+                    helpText: "Wetaaga obuyambi? Yogera n'omukulu w'ekyalo.",
+                    callBtn: "Kuba Omukulu w'ekyalo",
+                    dateMsgAvailable: "Loli atuuliddewo. Genda naye!",
+                    dateMsgFull: "Loli ajjudde. Lonadwa olunaku olulala."
+                },
+                sw: {
+                    header: "Weka Nafasi kwenye Lori",
+                    subHeader: "Shiriki safari, okoa pesa, na upeleke mazao yako sokoni.",
+                    yourDetails: "Maelezo Yako",
+                    nameLabel: "Jina lako",
+                    villageLabel: "Kijiji chako",
+                    phoneLabel: "Namba ya simu",
+                    produceDetails: "Maelezo ya Mazao Yako",
+                    produceLabel: "Unatuma nini?",
+                    quantityLabel: "Mifuko au vifurushi ngapi?",
+                    journeyDetails: "Maelezo ya Safari",
+                    marketLabel: "Soko gani?",
+                    dateLabel: "Tarehe ya kuchukuliwa?",
+                    summaryTitle: "Muhtasari wa Kuhifadhi Kwako",
+                    estimatedCost: "Makadirio ya Gharama:",
+                    paymentTitle: "Malipo",
+                    paymentMethod: "Pesa taslimu ukichukuliwa",
+                    paymentNote: "Tafadhali uwe na pesa kamili wakati lori litakapofika.",
+                    submitBtn: "Weka Nafasi Yangu Kwenye Lori",
+                    helpText: "Unahitaji msaada? Ongea na Msimamizi wa Kijiji.",
+                    callBtn: "Piga Msimamizi",
+                    dateMsgAvailable: "Lori imepangwa. Jiunge na kundi!",
+                    dateMsgFull: "Lori hili limejaa. Tafadhali chagua siku nyingine."
+                },
+                fr: {
+                    header: "Réservez une Place sur le Camion",
+                    subHeader: "Partagez le trajet, économisez de l'argent et amenez vos produits au marché.",
+                    yourDetails: "Vos Coordonnées",
+                    nameLabel: "Votre nom",
+                    villageLabel: "Votre village",
+                    phoneLabel: "Numéro de téléphone",
+                    produceDetails: "Détails de vos produits",
+                    produceLabel: "Qu'envoyez-vous?",
+                    quantityLabel: "Combien de sacs ou de paquets?",
+                    journeyDetails: "Détails du Trajet",
+                    marketLabel: "Quel marché?",
+                    dateLabel: "Date de ramassage préférée?",
+                    summaryTitle: "Résumé de votre réservation",
+                    estimatedCost: "Coût estimé:",
+                    paymentTitle: "Paiement",
+                    paymentMethod: "Paiement en espèces à la collecte",
+                    paymentNote: "Veuillez avoir le montant exact prêt à l'arrivée du camion.",
+                    submitBtn: "Réserver ma Place",
+                    helpText: "Besoin d'aide? Parlez à votre coordinateur de village.",
+                    callBtn: "Appeler le coordinateur",
+                    dateMsgAvailable: "Un camion est prévu. Rejoignez le groupe!",
+                    dateMsgFull: "Ce camion est plein. Veuillez choisir un autre jour."
+                }
+            };
+
+            function updateLanguage(lang) {
+                document.querySelector('h1').textContent = translations[lang].header;
+                document.querySelector('header p').textContent = translations[lang].subHeader;
+                document.querySelectorAll('h2')[0].textContent = translations[lang].yourDetails;
+                document.querySelector('label[for="name"]').textContent = translations[lang].nameLabel;
+                document.querySelector('label[for="village"]').textContent = translations[lang].villageLabel;
+                document.querySelector('label[for="phone"]').textContent = translations[lang].phoneLabel;
+                document.querySelectorAll('h2')[1].textContent = translations[lang].produceDetails;
+                document.querySelector('label[for="produce"]').textContent = translations[lang].produceLabel;
+                document.querySelector('label[for="quantity"]').textContent = translations[lang].quantityLabel;
+                document.querySelectorAll('h2')[2].textContent = translations[lang].journeyDetails;
+                document.querySelector('label[for="market"]').textContent = translations[lang].marketLabel;
+                document.querySelector('.summary h3').textContent = translations[lang].summaryTitle;
+                document.querySelector('.cost').textContent = translations[lang].estimatedCost;
+                document.querySelector('.payment-options h4').textContent = translations[lang].paymentTitle;
+                document.querySelector('.payment-options p:nth-child(2)').textContent = translations[lang].paymentMethod;
+                document.querySelector('.payment-options p:nth-child(3)').textContent = translations[lang].paymentNote;
+                document.querySelector('.btn-submit').textContent = translations[lang].submitBtn;
+                document.querySelector('.coordinator-call-section p').textContent = translations[lang].helpText;
+                document.querySelector('.btn-call-coordinator').innerHTML = `<i class="fas fa-phone"></i> ${translations[lang].callBtn}`;
+
+                document.querySelectorAll('.date-button').forEach(button => {
+                    const status = button.classList.contains('selected') ? 'available' : 'full';
+                    button.innerHTML = `<strong>${new Date(button.dataset.date).toDateString()}</strong> - ${translations[lang][`dateMsg${status.charAt(0).toUpperCase() + status.slice(1)}`]}`;
+                });
+            }
+
+            langSelector.addEventListener('change', (e) => {
+                updateLanguage(e.target.value);
+            });
+
+            const mockAvailability = {
+                'Nakasero Market': [{ date: '2025-08-15', status: 'available' }],
+                'Owino Market': [{ date: '2025-08-16', status: 'available' }]
+            };
+
+            document.getElementById('market').addEventListener('change', (e) => {
+                const market = e.target.value;
+                dateOptionsContainer.innerHTML = '';
+                if (mockAvailability[market]) {
+                    mockAvailability[market].forEach(item => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = `date-button ${item.status}`;
+                        button.dataset.date = item.date;
+                        const lang = langSelector.value;
+                        const messageKey = `dateMsg${item.status.charAt(0).toUpperCase() + item.status.slice(1)}`;
+                        button.innerHTML = `<strong>${new Date(item.date).toDateString()}</strong> - ${translations[lang][messageKey]}`;
+                        dateOptionsContainer.appendChild(button);
+                        if (item.status === 'available') {
+                            button.addEventListener('click', () => {
+                                document.querySelectorAll('.date-button').forEach(btn => btn.classList.remove('selected'));
+                                button.classList.add('selected');
+                                form.dispatchEvent(new Event('input'));
+                            });
+                        }
+                    });
+                }
+            });
+
+            form.addEventListener('input', () => {
+                summaryName.textContent = document.getElementById('name').value || '...';
+                const produceSelect = document.getElementById('produce');
+                const selectedProduceText = produceSelect.options[produceSelect.selectedIndex].text;
+                summaryProduce.textContent = `${selectedProduceText} (${quantityInput.value} bags)`;
+                const marketSelect = document.getElementById('market');
+                const selectedMarketText = marketSelect.options[marketSelect.selectedIndex].text;
+                summaryMarket.textContent = selectedMarketText || '...';
+                const selectedDateBtn = document.querySelector('.date-button.selected');
+                summaryDate.textContent = selectedDateBtn ? selectedDateBtn.dataset.date : '...';
+                const cost = parseInt(quantityInput.value) * 5000;
+                summaryCost.textContent = `UGX ${cost.toLocaleString()}`;
+            });
+
+            document.querySelectorAll('.btn-quantity').forEach(button => {
+                button.addEventListener('click', () => {
+                    let value = parseInt(quantityInput.value);
+                    if (button.dataset.action === 'increase') {
+                        quantityInput.value = value + 1;
+                    } else if (button.dataset.action === 'decrease' && value > 1) {
+                        quantityInput.value = value - 1;
+                    }
+                    form.dispatchEvent(new Event('input'));
+                });
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const selectedDateBtn = document.querySelector('.date-button.selected');
+                if (!selectedDateBtn) {
+                    alert('Please select a pickup date from the available options.');
+                    return;
+                }
+                const mockDriver = { name: 'Kato James', lorryReg: 'UBK 123G' };
+                driverName.textContent = mockDriver.name;
+                lorryReg.textContent = mockDriver.lorryReg;
+                driverDetailsSection.style.display = 'block';
+                alert('Booking confirmed! You will receive a confirmation message with the driver’s details shortly.');
+
+                // Here you would add code to save the booking to Firestore
+                // For example:
+                // try {
+                //     const docRef = await addDoc(collection(db, "bookings"), {
+                //         name: document.getElementById('name').value,
+                //         produce: document.getElementById('produce').value,
+                //         quantity: parseInt(quantityInput.value),
+                //         market: document.getElementById('market').value,
+                //         date: selectedDateBtn.dataset.date
+                //     });
+                //     console.log("Document written with ID: ", docRef.id);
+                // } catch (e) {
+                //     console.error("Error adding document: ", e);
+                // }
+            });
+
+            updateLanguage(langSelector.value);
+            form.dispatchEvent(new Event('input'));
+        });
+    </script>
+</body>
+</html>
