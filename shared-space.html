@@ -172,7 +172,7 @@
         .hidden {
             display: none;
         }
-        #areaSelection, #groupDisplay, #loadingMessage, #userIdDisplay, #bookingForm {
+        #authSection, #areaSelection, #groupDisplay, #loadingMessage, #userIdDisplay, #bookingForm {
             margin-top: 20px;
             padding: 20px;
             border: 1px solid #ccc;
@@ -281,6 +281,14 @@
         .modal-content h3 {
             color: #004d40;
         }
+        #recaptcha-container {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        #authSection input[type="tel"] {
+            margin-bottom: 10px;
+        }
 
 
         /* Responsive design */
@@ -336,6 +344,25 @@
             <div class="spinner"></div>
         </div>
 
+        <!-- Auth Section -->
+        <div id="authSection" class="hidden">
+            <h2>Sign In</h2>
+            <p>Enter your phone number to get started.</p>
+            <div class="form-group">
+                <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="e.g., +256771234567" required>
+            </div>
+            <button type="button" id="sendCodeBtn" class="btn-submit">Send Verification Code</button>
+            <div id="recaptcha-container"></div>
+            
+            <div id="verificationCodeSection" class="hidden">
+                <p>Enter the 6-digit code sent to your phone.</p>
+                <div class="form-group">
+                    <input type="number" id="verificationCode" name="verificationCode" placeholder="Verification Code" required>
+                </div>
+                <button type="button" id="verifyCodeBtn" class="btn-submit">Verify Code</button>
+            </div>
+        </div>
+        
         <!-- Step 1: Area Selection -->
         <div id="areaSelection" class="hidden">
             <h2>Select Your Area</h2>
@@ -487,8 +514,8 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithPhoneNumber, onAuthStateChanged, RecaptchaVerifier, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, setDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables for Firebase
         let db;
@@ -509,6 +536,8 @@
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
+        
+        let confirmationResult;
 
         // Function to show a custom modal message
         function showModal(title, message) {
@@ -524,6 +553,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             const userIdSpan = document.getElementById('userIdSpan');
             const loadingMessage = document.getElementById('loadingMessage');
+            const authSection = document.getElementById('authSection');
+            const phoneNumberInput = document.getElementById('phoneNumber');
+            const sendCodeBtn = document.getElementById('sendCodeBtn');
+            const recaptchaContainer = document.getElementById('recaptcha-container');
+            const verificationCodeSection = document.getElementById('verificationCodeSection');
+            const verificationCodeInput = document.getElementById('verificationCode');
+            const verifyCodeBtn = document.getElementById('verifyCodeBtn');
             const areaSelection = document.getElementById('areaSelection');
             const areaSelect = document.getElementById('area');
             const selectAreaBtn = document.getElementById('selectAreaBtn');
@@ -562,17 +598,69 @@
 
             // Wait for authentication state to be ready
             onAuthStateChanged(auth, async (user) => {
+                loadingMessage.classList.add('hidden');
                 if (user) {
                     userId = user.uid;
                     userIdSpan.textContent = userId;
-                    loadingMessage.classList.add('hidden');
+                    authSection.classList.add('hidden');
                     areaSelection.classList.remove('hidden');
-                    // Start listening to data once authenticated
                     setupFirestoreListeners();
                     fetchAndRenderAreas();
                 } else {
-                    // Sign in anonymously if no user is found
-                    await signInAnonymously(auth);
+                    authSection.classList.remove('hidden');
+                }
+            });
+
+            // If an auth token is provided, sign in with it immediately
+            if (__initial_auth_token) {
+                 signInWithCustomToken(auth, __initial_auth_token)
+                    .then(() => {
+                        console.log("Signed in with custom token.");
+                    })
+                    .catch((error) => {
+                        console.error("Error signing in with custom token:", error);
+                    });
+            }
+
+            // Firebase Phone Auth
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'normal',
+                'callback': (response) => {
+                    // reCAPTCHA solved, allow user to send code
+                    console.log("reCAPTCHA verified");
+                }
+            });
+
+            sendCodeBtn.addEventListener('click', async () => {
+                const phoneNumber = phoneNumberInput.value;
+                if (!phoneNumber) {
+                    showModal("Error", "Please enter a valid phone number.");
+                    return;
+                }
+                const appVerifier = window.recaptchaVerifier;
+                try {
+                    confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+                    verificationCodeSection.classList.remove('hidden');
+                    sendCodeBtn.textContent = "Code Sent!";
+                    sendCodeBtn.disabled = true;
+                } catch (error) {
+                    console.error("Error during phone sign-in:", error);
+                    showModal("Error", "Failed to send verification code. Please check the number and try again.");
+                }
+            });
+
+            verifyCodeBtn.addEventListener('click', async () => {
+                const code = verificationCodeInput.value;
+                if (!code) {
+                    showModal("Error", "Please enter the verification code.");
+                    return;
+                }
+                try {
+                    await confirmationResult.confirm(code);
+                    // User is now signed in, onAuthStateChanged will handle the rest
+                } catch (error) {
+                    console.error("Error verifying code:", error);
+                    showModal("Error", "Incorrect verification code. Please try again.");
                 }
             });
 
@@ -585,16 +673,16 @@
 
             const translations = {
                 en: {
-                    header: "Book a Space on the Lorry", subHeader: "Share the journey, save money, and get your produce to the market.", selectArea: "Select Your Area", selectAreaSub: "Please choose your village or current location.", areaLabel: "Your Area", proceedBtn: "Proceed", groupsTitle: "Saved Groups in", groupsSub: "Join an existing group or create a new one to save on transport costs.", newGroupBtn: "Create a New Group", joinGroupBtn: "Join Group", yourDetails: "Your Details", nameLabel: "Your Name", phoneLabel: "Phone Number", produceDetails: "Your Produce Details", produceLabel: "What are you sending?", quantityLabel: "How many bags or bundles?", journeyDetails: "Journey Details", marketLabel: "Which market?", pickupLabel: "Preferred Pickup Date & Time", summaryTitle: "Your Booking Summary", pickupTime: "Pickup:", estimatedCost: "Estimated Cost:", paymentTitle: "Payment", paymentNote: "Please choose your payment method below:", submitBtn: "Book My Lorry Space", chatText: "Got questions or need to chat with your group?", chatBtn: "Chat on WhatsApp", costBase: "Base Rate per bag:", costDiscount: "Group Discount:", costFinal: "Final Cost:", groupName: "Group", members: "members", paidStatus: "Paid", pendingStatus: "Pending Payment", failedStatus: "Failed", rebookBtn: "Re-book", payMoMoBtn: "Pay with MTN MoMo", payAirtelBtn: "Pay with Airtel Money", paymentModalTitle: "Pay with Mobile Money", paymentModalMsg: "To pay, please dial your mobile money code and send the amount to:", mobileMoneyNumber: "Mobile Money Number:", confirmPayment: "I have paid", paymentSuccess: "Payment successful! Your booking is confirmed.", paymentFailure: "Payment failed. Please try again.", bookingHistoryTitle: "Your Past Bookings", noGroups: "No active groups found. Be the first to create one!", userIdLabel: "Your User ID:", connecting: "Connecting to database and authenticating...", noBookings: "You have no past bookings.", paymentInfoTitle: "Complete Your Payment", modalTitleSuccess: "Success!", modalTitleError: "Error!", modalMessagePaymentSuccess: "Your booking is confirmed and payment is noted.", modalMessagePaymentError: "There was an error processing your payment. Please try again or contact support."
+                    header: "Book a Space on the Lorry", subHeader: "Share the journey, save money, and get your produce to the market.", signInTitle: "Sign In", signInSub: "Enter your phone number to get started.", sendCodeBtn: "Send Verification Code", recaptchaInstruction: "Please verify you are not a robot.", enterCodeTitle: "Enter the 6-digit code sent to your phone.", verifyCodeBtn: "Verify Code", selectArea: "Select Your Area", selectAreaSub: "Please choose your village or current location.", areaLabel: "Your Area", proceedBtn: "Proceed", groupsTitle: "Saved Groups in", groupsSub: "Join an existing group or create a new one to save on transport costs.", newGroupBtn: "Create a New Group", joinGroupBtn: "Join Group", yourDetails: "Your Details", nameLabel: "Your Name", phoneLabel: "Phone Number", produceDetails: "Your Produce Details", produceLabel: "What are you sending?", quantityLabel: "How many bags or bundles?", journeyDetails: "Journey Details", marketLabel: "Which market?", pickupLabel: "Preferred Pickup Date & Time", summaryTitle: "Your Booking Summary", pickupTime: "Pickup:", estimatedCost: "Estimated Cost:", paymentTitle: "Payment", paymentNote: "Please choose your payment method below:", submitBtn: "Book My Lorry Space", chatText: "Got questions or need to chat with your group?", chatBtn: "Chat on WhatsApp", costBase: "Base Rate per bag:", costDiscount: "Group Discount:", costFinal: "Final Cost:", groupName: "Group", members: "members", paidStatus: "Paid", pendingStatus: "Pending Payment", failedStatus: "Failed", rebookBtn: "Re-book", payMoMoBtn: "Pay with MTN MoMo", payAirtelBtn: "Pay with Airtel Money", paymentModalTitle: "Pay with Mobile Money", paymentModalMsg: "To pay, please dial your mobile money code and send the amount to:", mobileMoneyNumber: "Mobile Money Number:", confirmPayment: "I have paid", paymentSuccess: "Payment successful! Your booking is confirmed.", paymentFailure: "Payment failed. Please try again.", bookingHistoryTitle: "Your Past Bookings", noGroups: "No active groups found. Be the first to create one!", userIdLabel: "Your User ID:", connecting: "Connecting to database and authenticating...", noBookings: "You have no past bookings.", paymentInfoTitle: "Complete Your Payment", modalTitleSuccess: "Success!", modalTitleError: "Error!", modalMessagePaymentSuccess: "Your booking is confirmed and payment is noted.", modalMessagePaymentError: "There was an error processing your payment. Please try again or contact support."
                 },
                 lg: {
-                    header: "Kuwandiisa Ekifo ku Loli", subHeader: "Mugabane olugendo, mutereze ssente, era mutuse eby'okulima byammwe mu katale.", selectArea: "Londa Ekitundu Kyo", selectAreaSub: "Londa ekyalo kyo oba ekifo gy'oli.", areaLabel: "Ekitundu kyo", proceedBtn: "Genda mu Maaso", groupsTitle: "Ebibiina ebiriyo mu", groupsSub: "Genda mu kibiina eky'omanyi oba okyatondewo ekipya okutereka ssente.", newGroupBtn: "Tondawo Ekibiina Ekipya", joinGroupBtn: "Genda mu Kibiina", yourDetails: "Ebikukwatako", nameLabel: "Erinnya lyo", phoneLabel: "Namba y'essimu", produceDetails: "Eby'okulima byo", produceLabel: "Otumira ki?", quantityLabel: "Ebiwuufu oba ebinywa bimeka?", journeyDetails: "Eby'olugendo", marketLabel: "Katale ki?", pickupLabel: "Olunaku n'ebiseera by'okulonda", summaryTitle: "Eby'okukwandiisa byo", pickupTime: "Okulonda:", estimatedCost: "Ekigeregeranyo ky'omutwalo:", paymentTitle: "Okusasula", paymentNote: "Londa engeri gy'osasulamu wansi:", submitBtn: "Kuwandiisa Ekifo kyange ku Loli", chatText: "Wetaaga obuyambi oba okwogera n'ekibiina kyo?", chatBtn: "Yogera ku WhatsApp", costBase: "Ekituufu ku ka-biwuufu:", costDiscount: "Okukendeeza:", costFinal: "Omutwalo ogw'enkomerero:", groupName: "Ekibiina", members: "abantu", paidStatus: "Kisasuddwa", pendingStatus: "Kisigaddeyo okusasulwa", failedStatus: "Kigaanye", rebookBtn: "Kuwandiisa nate", payMoMoBtn: "Sasula ku MTN MoMo", payAirtelBtn: "Sasula ku Airtel Money", paymentModalTitle: "Sasula ku Mobile Money", paymentModalMsg: "Okusasula, kola *165# ku ssimu yo era ogoberere amateeka okutuma ssente:", mobileMoneyNumber: "Namba ya Mobile Money:", confirmPayment: "Nkoze okusasula", paymentSuccess: "Okusasula kugenze bulungi! Eby'okukwandiisa bikoleddwa.", paymentFailure: "Okusasula kugaanye. Kodda nate.", bookingHistoryTitle: "Eby'okukwandiisa byo ebyayita", noGroups: "Tewali bibiina. Beera ow'olubereberye okutondawo ekibiina!", userIdLabel: "Namba yo:", connecting: "Tukufuna ku database...", noBookings: "Tolina by'okukwandiisa ebyayita.", paymentInfoTitle: "Maliriza Okusasula", modalTitleSuccess: "Kigendedde bulungi!", modalTitleError: "Ensobi!", modalMessagePaymentSuccess: "Eby'okukwandiisa bikoleddwa era okusasula kulondeddwa.", modalMessagePaymentError: "Wabaddewo ensobi mu kisasula. Kodda nate oba weerabire abakola."
+                    header: "Kuwandiisa Ekifo ku Loli", subHeader: "Mugabane olugendo, mutereze ssente, era mutuse eby'okulima byammwe mu katale.", signInTitle: "Yingira", signInSub: "Yingiza namba y'essimu yo okutandika.", sendCodeBtn: "Weereza Koodi", recaptchaInstruction: "Kkiriza nti oli muntu.", enterCodeTitle: "Yingiza koodi ey'ennamba 6 eyakutumiddwa ku ssimu yo.", verifyCodeBtn: "Kkiriza Koodi", selectArea: "Londa Ekitundu Kyo", selectAreaSub: "Londa ekyalo kyo oba ekifo gy'oli.", areaLabel: "Ekitundu kyo", proceedBtn: "Genda mu Maaso", groupsTitle: "Ebibiina ebiriyo mu", groupsSub: "Genda mu kibiina eky'omanyi oba okyatondewo ekipya okutereka ssente.", newGroupBtn: "Tondawo Ekibiina Ekipya", joinGroupBtn: "Genda mu Kibiina", yourDetails: "Ebikukwatako", nameLabel: "Erinnya lyo", phoneLabel: "Namba y'essimu", produceDetails: "Eby'okulima byo", produceLabel: "Otumira ki?", quantityLabel: "Ebiwuufu oba ebinywa bimeka?", journeyDetails: "Eby'olugendo", marketLabel: "Katale ki?", pickupLabel: "Olunaku n'ebiseera by'okulonda", summaryTitle: "Eby'okukwandiisa byo", pickupTime: "Okulonda:", estimatedCost: "Ekigeregeranyo ky'omutwalo:", paymentTitle: "Okusasula", paymentNote: "Londa engeri gy'osasulamu wansi:", submitBtn: "Kuwandiisa Ekifo kyange ku Loli", chatText: "Wetaaga obuyambi oba okwogera n'ekibiina kyo?", chatBtn: "Yogera ku WhatsApp", costBase: "Ekituufu ku ka-biwuufu:", costDiscount: "Okukendeeza:", costFinal: "Omutwalo ogw'enkomerero:", groupName: "Ekibiina", members: "abantu", paidStatus: "Kisasuddwa", pendingStatus: "Kisigaddeyo okusasulwa", failedStatus: "Kigaanye", rebookBtn: "Kuwandiisa nate", payMoMoBtn: "Sasula ku MTN MoMo", payAirtelBtn: "Sasula ku Airtel Money", paymentModalTitle: "Sasula ku Mobile Money", paymentModalMsg: "Okusasula, kola *165# ku ssimu yo era ogoberere amateeka okutuma ssente:", mobileMoneyNumber: "Namba ya Mobile Money:", confirmPayment: "Nkoze okusasula", paymentSuccess: "Okusasula kugenze bulungi! Eby'okukwandiisa bikoleddwa.", paymentFailure: "Okusasula kugaanye. Kodda nate.", bookingHistoryTitle: "Eby'okukwandiisa byo ebyayita", noGroups: "Tewali bibiina. Beera ow'olubereberye okutondawo ekibiina!", userIdLabel: "Namba yo:", connecting: "Tukufuna ku database...", noBookings: "Tolina by'okukwandiisa ebyayita.", paymentInfoTitle: "Maliriza Okusasula", modalTitleSuccess: "Kigendedde bulungi!", modalTitleError: "Ensobi!", modalMessagePaymentSuccess: "Eby'okukwandiisa bikoleddwa era okusasula kulondeddwa.", modalMessagePaymentError: "Wabaddewo ensobi mu kisasula. Kodda nate oba weerabire abakola."
                 },
                 sw: {
-                    header: "Weka Nafasi kwenye Lori", subHeader: "Shiriki safari, okoa pesa, na upeleke mazao yako sokoni.", selectArea: "Chagua Eneo Lako", selectAreaSub: "Tafadhali chagua kijiji chako au eneo ulipo sasa.", areaLabel: "Eneo lako", proceedBtn: "Endelea", groupsTitle: "Vikundi vilivyohifadhiwa hapa", groupsSub: "Jiunge na kikundi kilichopo au unda kipya ili kuokoa pesa za usafiri.", newGroupBtn: "Unda Kikundi Kipya", joinGroupBtn: "Jiunge na Kikundi", yourDetails: "Maelezo Yako", nameLabel: "Jina lako", phoneLabel: "Namba ya simu", produceDetails: "Maelezo ya Mazao Yako", produceLabel: "Unatuma nini?", quantityLabel: "Mifuko au vifurushi ngapi?", journeyDetails: "Maelezo ya Safari", marketLabel: "Soko gani?", pickupLabel: "Tarehe na Saa ya Kuchukuliwa", summaryTitle: "Muhtasari wa Kuhifadhi Kwako", pickupTime: "Kuchukuliwa:", estimatedCost: "Makadirio ya Gharama:", paymentTitle: "Malipo", paymentNote: "Tafadhali chagua njia yako ya malipo hapa chini:", submitBtn: "Weka Nafasi Yangu Kwenye Lori", chatText: "Una maswali au unahitaji kupiga gumzo na kikundi chako?", chatBtn: "Piga gumzo kwenye WhatsApp", costBase: "Kiwango cha Msingi kwa mfuko:", costDiscount: "Punguzo la Kikundi:", costFinal: "Gharama ya Mwisho:", groupName: "Kikundi", members: "wanachama", paidStatus: "Imelipwa", pendingStatus: "Inasubiri Malipo", failedStatus: "Imeshindwa", rebookBtn: "Hifadhi tena", payMoMoBtn: "Lipa kwa MTN MoMo", payAirtelBtn: "Lipa kwa Airtel Money", paymentModalTitle: "Lipa kwa Mobile Money", paymentModalMsg: "Ili kulipa, piga *165# kwenye simu yako na ufuate maagizo ya kutuma kiasi kwa:", mobileMoneyNumber: "Namba ya Mobile Money:", confirmPayment: "Nimelipa", paymentSuccess: "Malipo yamefanikiwa! Uhifadhi wako umethibitishwa.", paymentFailure: "Malipo yameshindwa. Tafadhali jaribu tena.", bookingHistoryTitle: "Uhifadhi wako uliopita", noGroups: "Hakuna vikundi vilivyopo. Kuwa wa kwanza kuunda kikundi!", userIdLabel: "Namba yako:", connecting: "Inaunganisha na hifadhidata...", noBookings: "Huna uhifadhi wowote uliopita.", paymentInfoTitle: "Kamilisha Malipo Yako", modalTitleSuccess: "Imefanikiwa!", modalTitleError: "Hitilafu!", modalMessagePaymentSuccess: "Uhifadhi wako umethibitishwa na malipo yamechukuliwa.", modalMessagePaymentError: "Kulitokea hitilafu wakati wa kuchakata malipo yako. Tafadhali jaribu tena au wasiliana na usaidizi."
+                    header: "Weka Nafasi kwenye Lori", subHeader: "Shiriki safari, okoa pesa, na upeleke mazao yako sokoni.", signInTitle: "Ingia", signInSub: "Ingiza namba yako ya simu ili kuanza.", sendCodeBtn: "Tuma Nambari ya Uthibitisho", recaptchaInstruction: "Tafadhali thibitisha wewe si roboti.", enterCodeTitle: "Ingiza nambari ya tarakimu 6 iliyotumwa kwa simu yako.", verifyCodeBtn: "Thibitisha Nambari", selectArea: "Chagua Eneo Lako", selectAreaSub: "Tafadhali chagua kijiji chako au eneo ulipo sasa.", areaLabel: "Eneo lako", proceedBtn: "Endelea", groupsTitle: "Vikundi vilivyohifadhiwa hapa", groupsSub: "Jiunge na kikundi kilichopo au unda kipya ili kuokoa pesa za usafiri.", newGroupBtn: "Unda Kikundi Kipya", joinGroupBtn: "Jiunge na Kikundi", yourDetails: "Maelezo Yako", nameLabel: "Jina lako", phoneLabel: "Namba ya simu", produceDetails: "Maelezo ya Mazao Yako", produceLabel: "Unatuma nini?", quantityLabel: "Mifuko au vifurushi ngapi?", journeyDetails: "Maelezo ya Safari", marketLabel: "Soko gani?", pickupLabel: "Tarehe na Saa ya Kuchukuliwa", summaryTitle: "Muhtasari wa Kuhifadhi Kwako", pickupTime: "Kuchukuliwa:", estimatedCost: "Makadirio ya Gharama:", paymentTitle: "Malipo", paymentNote: "Tafadhali chagua njia yako ya malipo hapa chini:", submitBtn: "Weka Nafasi Yangu Kwenye Lori", chatText: "Una maswali au unahitaji kupiga gumzo na kikundi chako?", chatBtn: "Piga gumzo kwenye WhatsApp", costBase: "Kiwango cha Msingi kwa mfuko:", costDiscount: "Punguzo la Kikundi:", costFinal: "Gharama ya Mwisho:", groupName: "Kikundi", members: "wanachama", paidStatus: "Imelipwa", pendingStatus: "Inasubiri Malipo", failedStatus: "Imeshindwa", rebookBtn: "Hifadhi tena", payMoMoBtn: "Lipa kwa MTN MoMo", payAirtelBtn: "Lipa kwa Airtel Money", paymentModalTitle: "Lipa kwa Mobile Money", paymentModalMsg: "Ili kulipa, piga *165# kwenye simu yako na ufuate maagizo ya kutuma kiasi kwa:", mobileMoneyNumber: "Namba ya Mobile Money:", confirmPayment: "Nimelipa", paymentSuccess: "Malipo yamefanikiwa! Uhifadhi wako umethibitishwa.", paymentFailure: "Malipo yameshindwa. Tafadhali jaribu tena.", bookingHistoryTitle: "Uhifadhi wako uliopita", noGroups: "Hakuna vikundi vilivyopo. Kuwa wa kwanza kuunda kikundi!", userIdLabel: "Namba yako:", connecting: "Inaunganisha na hifadhidata...", noBookings: "Huna uhifadhi wowote uliopita.", paymentInfoTitle: "Kamilisha Malipo Yako", modalTitleSuccess: "Imefanikiwa!", modalTitleError: "Hitilafu!", modalMessagePaymentSuccess: "Uhifadhi wako umethibitishwa na malipo yamechukuliwa.", modalMessagePaymentError: "Kulitokea hitilafu wakati wa kuchakata malipo yako. Tafadhali jaribu tena au wasiliana na usaidizi."
                 },
                 fr: {
-                    header: "Réservez une Place sur le Camion", subHeader: "Partagez le trajet, économisez de l'argent et amenez vos produits au marché.", selectArea: "Sélectionnez votre zone", selectAreaSub: "Veuillez choisir votre village ou votre emplacement actuel.", areaLabel: "Votre zone", proceedBtn: "Continuer", groupsTitle: "Groupes enregistrés à", groupsSub: "Rejoignez un groupe existant ou créez-en un nouveau pour économiser sur les frais de transport.", newGroupBtn: "Créer un nouveau groupe", joinGroupBtn: "Rejoindre le groupe", yourDetails: "Vos Coordonnées", nameLabel: "Votre nom", phoneLabel: "Numéro de téléphone", produceDetails: "Détails de vos produits", produceLabel: "Qu'envoyez-vous?", quantityLabel: "Combien de sacs ou de paquets?", journeyDetails: "Détails du Trajet", marketLabel: "Quel marché?", pickupLabel: "Date et heure de ramassage préférées", summaryTitle: "Résumé de votre réservation", pickupTime: "Ramassage:", estimatedCost: "Coût estimé:", paymentTitle: "Paiement", paymentNote: "Veuillez choisir votre méthode de paiement ci-dessous:", submitBtn: "Réserver ma Place", chatText: "Vous avez des questions ou besoin de discuter avec votre groupe?", chatBtn: "Discuter sur WhatsApp", costBase: "Tarif de base par sac:", costDiscount: "Remise de groupe:", costFinal: "Coût final:", groupName: "Groupe", members: "membres", paidStatus: "Payé", pendingStatus: "Paiement en attente", failedStatus: "Échec", rebookBtn: "Réserver à nouveau", payMoMoBtn: "Payer avec MTN MoMo", payAirtelBtn: "Payer avec Airtel Money", paymentModalTitle: "Payer avec Mobile Money", paymentModalMsg: "Pour payer, composez le *165# sur votre téléphone et suivez les instructions pour envoyer le montant à:", mobileMoneyNumber: "Numéro Mobile Money:", confirmPayment: "J'ai payé", paymentSuccess: "Paiement réussi ! Votre réservation est confirmée.", paymentFailure: "Le paiement a échoué. Veuillez réessayer.", bookingHistoryTitle: "Vos réservations passées", noGroups: "Aucun groupe actif trouvé. Soyez le premier à en créer un!", userIdLabel: "Votre numéro:", connecting: "Connexion à la base de données et authentification...", noBookings: "Vous n'avez pas de réservations passées.", paymentInfoTitle: "Terminez Votre Paiement", modalTitleSuccess: "Succès !", modalTitleError: "Erreur !", modalMessagePaymentSuccess: "Votre réservation est confirmée et le paiement est enregistré.", modalMessagePaymentError: "Une erreur est survenue lors du traitement de votre paiement. Veuillez réessayer ou contacter le support."
+                    header: "Réservez une Place sur le Camion", subHeader: "Partagez le trajet, économisez de l'argent et amenez vos produits au marché.", signInTitle: "Connectez-vous", signInSub: "Entrez votre numéro de téléphone pour commencer.", sendCodeBtn: "Envoyer le code de vérification", recaptchaInstruction: "Veuillez vérifier que vous n'êtes pas un robot.", enterCodeTitle: "Entrez le code à 6 chiffres envoyé sur votre téléphone.", verifyCodeBtn: "Vérifier le code", selectArea: "Sélectionnez votre zone", selectAreaSub: "Veuillez choisir votre village ou votre emplacement actuel.", areaLabel: "Votre zone", proceedBtn: "Continuer", groupsTitle: "Groupes enregistrés à", groupsSub: "Rejoignez un groupe existant ou créez-en un nouveau pour économiser sur les frais de transport.", newGroupBtn: "Créer un nouveau groupe", joinGroupBtn: "Rejoindre le groupe", yourDetails: "Vos Coordonnées", nameLabel: "Votre nom", phoneLabel: "Numéro de téléphone", produceDetails: "Détails de vos produits", produceLabel: "Qu'envoyez-vous?", quantityLabel: "Combien de sacs ou de paquets?", journeyDetails: "Détails du Trajet", marketLabel: "Quel marché?", pickupLabel: "Date et heure de ramassage préférées", summaryTitle: "Résumé de votre réservation", pickupTime: "Ramassage:", estimatedCost: "Coût estimé:", paymentTitle: "Paiement", paymentNote: "Veuillez choisir votre méthode de paiement ci-dessous:", submitBtn: "Réserver ma Place", chatText: "Vous avez des questions ou besoin de discuter avec votre groupe?", chatBtn: "Discuter sur WhatsApp", costBase: "Tarif de base par sac:", costDiscount: "Remise de groupe:", costFinal: "Coût final:", groupName: "Groupe", members: "membres", paidStatus: "Payé", pendingStatus: "Paiement en attente", failedStatus: "Échec", rebookBtn: "Réserver à nouveau", payMoMoBtn: "Payer avec MTN MoMo", payAirtelBtn: "Payer avec Airtel Money", paymentModalTitle: "Payer avec Mobile Money", paymentModalMsg: "Pour payer, composez le *165# sur votre téléphone et suivez les instructions pour envoyer le montant à:", mobileMoneyNumber: "Numéro Mobile Money:", confirmPayment: "J'ai payé", paymentSuccess: "Paiement réussi ! Votre réservation est confirmée.", paymentFailure: "Le paiement a échoué. Veuillez réessayer.", bookingHistoryTitle: "Vos réservations passées", noGroups: "Aucun groupe actif trouvé. Soyez le premier à en créer un!", userIdLabel: "Votre numéro:", connecting: "Connexion à la base de données et authentification...", noBookings: "Vous n'avez pas de réservations passées.", paymentInfoTitle: "Terminez Votre Paiement", modalTitleSuccess: "Succès !", modalTitleError: "Erreur !", modalMessagePaymentSuccess: "Votre réservation est confirmée et le paiement est enregistré.", modalMessagePaymentError: "Une erreur est survenue lors du traitement de votre paiement. Veuillez réessayer ou contacter le support."
                 }
             };
             
@@ -604,6 +692,14 @@
                 document.querySelector('header p').textContent = t.subHeader;
                 document.querySelector('#userIdDisplay p strong').textContent = t.userIdLabel;
                 document.querySelector('#loadingMessage p').textContent = t.connecting;
+
+                // Auth section
+                document.querySelector('#authSection h2').textContent = t.signInTitle;
+                document.querySelector('#authSection p:nth-of-type(1)').textContent = t.signInSub;
+                document.getElementById('sendCodeBtn').textContent = t.sendCodeBtn;
+                document.querySelector('#verificationCodeSection p').textContent = t.enterCodeTitle;
+                document.getElementById('verifyCodeBtn').textContent = t.verifyCodeBtn;
+
                 document.querySelector('#areaSelection h2').textContent = t.selectArea;
                 document.querySelector('#areaSelection p').textContent = t.selectAreaSub;
                 document.querySelector('label[for="area"]').textContent = t.areaLabel;
@@ -712,7 +808,6 @@
                     btn.addEventListener('click', () => {
                         const groupId = btn.dataset.groupId;
                         const groupToJoin = liveGroups.find(g => g.id === groupId);
-                        // Update group size for cost calculation
                         currentGroupSize = groupToJoin ? groupToJoin.members.length + 1 : 1;
                         currentGroupRef = doc(db, `artifacts/${appId}/public/data/groups`, groupId);
                         groupDisplay.classList.add('hidden');
@@ -898,3 +993,4 @@
     </script>
 </body>
 </html>
+
